@@ -1,0 +1,62 @@
+name: Build Android APKs
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        project:
+          - Bug4-StringOverflow
+          - Bug1-IntegerOverflow
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Grant execute permission for gradlew
+      run: |
+        cd ${{ matrix.project }}
+        chmod +x gradlew || echo "gradlew not found, will use gradle wrapper"
+
+    - name: Build Debug APK
+      run: |
+        cd ${{ matrix.project }}
+        ./gradlew assembleDebug --stacktrace
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.project }}-debug-apk
+        path: ${{ matrix.project }}/app/build/outputs/apk/debug/*.apk
+        retention-days: 30
+
+    - name: Build Release APK (unsigned)
+      run: |
+        cd ${{ matrix.project }}
+        ./gradlew assembleRelease --stacktrace
+      continue-on-error: true
+
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: ${{ matrix.project }}-release-apk
+        path: ${{ matrix.project }}/app/build/outputs/apk/release/*.apk
+        retention-days: 30
