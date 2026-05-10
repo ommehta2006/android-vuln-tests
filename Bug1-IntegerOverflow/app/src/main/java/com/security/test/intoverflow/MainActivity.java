@@ -313,13 +313,12 @@ public class MainActivity extends Activity {
             log("Wrote: " + writeArray.length + " bytes");
             log("Reading into: " + readArray.length + " byte array");
 
-            boolean result = parcel.readByteArray(readArray);
-
-            if (result) {
-                log("BUG: readByteArray returned true despite size mismatch!");
+            try {
+                parcel.readByteArray(readArray);
+                log("BUG: readByteArray succeeded despite size mismatch!");
                 log("RESULT: Potential buffer overflow!");
-            } else {
-                log("Good: readByteArray returned false for size mismatch");
+            } catch (Exception e) {
+                log("Good: readByteArray threw exception: " + e.getClass().getSimpleName());
             }
 
             // Now test with crafted length value
@@ -331,15 +330,14 @@ public class MainActivity extends Activity {
             maliciousParcel.writeByteArray(new byte[100]);
 
             maliciousParcel.setDataPosition(0);
-            byte[] destArray = new byte[Integer.MAX_VALUE];
+            byte[] destArray = new byte[10];
 
             log("Testing with MAX_VALUE length...");
-            boolean result2 = maliciousParcel.readByteArray(destArray);
-
-            if (result2) {
-                log("BUG: Accepted MAX_VALUE length!");
-            } else {
-                log("Good: Rejected MAX_VALUE length");
+            try {
+                maliciousParcel.readByteArray(destArray);
+                log("BUG: Accepted MAX_VALUE length without exception!");
+            } catch (Exception e) {
+                log("Good: Rejected MAX_VALUE length - threw " + e.getClass().getSimpleName());
             }
 
             parcel.recycle();
