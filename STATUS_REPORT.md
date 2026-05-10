@@ -104,7 +104,7 @@ Everything Google needs:
 2. **Push Your Code**
    ```bash
    cd d:\c\android-vuln-tests
-   git remote add origin https://github.com/YOUR_USERNAME/android-vuln-tests.git
+   git remote add origin https://github.com/ommehta2006/android-vuln-tests.git
    git branch -M main
    git push -u origin main
    ```
